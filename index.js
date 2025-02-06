@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const readline = require("readline");
 const { readFilesFromFolder } = require("./fileProcess");
 const { getInfo } = require("./database");
+const { retriveData } = require("./retrieve");
 require("dotenv").config();
 
 const rl = readline.createInterface({
@@ -20,10 +21,21 @@ const askForFilePath = () => {
   });
 };
 
+const askForPrompt = () => {
+  return new Promise((resolve, reject) => {
+    rl.question("Ask for an information: ", (prompt) => {
+      const allInformation = getInfo().then((data) => {
+        const info = retriveData(data[0].info, prompt);
+        resolve(info);
+      });
+    });
+  });
+};
+
 const showMenu = () => {
   console.log("\n============ Command Menu ============");
   console.log("1. Fetch new data");
-  console.log("2. View Data");
+  console.log("2. Query for information.");
   console.log("3. Exit");
   console.log("======================================");
 
@@ -37,8 +49,9 @@ const handleUserInput = async (input) => {
       await readFilesFromFolder(path);
       break;
     case "2":
-      const data = await getInfo();
-      console.log(JSON.parse(data[0].info));
+      const data = await askForPrompt();
+      console.log(data);
+      // console.log(JSON.parse(data[0].info));
       break;
     case "3":
       rl.close();

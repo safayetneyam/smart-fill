@@ -14,7 +14,7 @@ async function processTextFile(filePath) {
 
     // Call the fetchInfo function to extract information
     const generatedOutput = await fetchInfo(data);
-    console.log(generatedOutput);
+    // console.log(generatedOutput);
     addInfo({ info: JSON.stringify(generatedOutput) });
   } catch (error) {
     console.error("Error reading text file:", error);

@@ -18,12 +18,8 @@
     "groq-sdk": "^0.15.0",
     "mammoth": "^1.9.0",
     "mongoose": "^8.10.0",
-    "node-easyocr": "^1.0.9",
-    "node-tesseract-ocr": "^2.2.1",
-    "node-ts-ocr": "^1.0.15",
     "nodemon": "^3.1.9",
     "pdf-parse": "^1.1.1",
-    "tesseract.js": "^6.0.0",
-    "wait-console-input": "^0.1.7"
+    "tesseract.js": "^6.0.0"
   }
 }
