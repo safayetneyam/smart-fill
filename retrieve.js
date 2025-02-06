@@ -23,6 +23,7 @@ const retriveData = async (data, query) => {
             3. Provide only the extracted data.
             4. Format text for better spacing and identation. Process gaps wisely for name, address, date of birth etc.
 
+
             here is the given data 
             <DATA START>
             ${data}
@@ -31,7 +32,7 @@ const retriveData = async (data, query) => {
       },
       {
         role: "user",
-        content: `Extract the ${query} of the person from the given data please`,
+        content: `Extract the ${query} of the person from the given data please. Extract only if available in given data. Don't calculate or create any information. If you don't find simply say not found.`,
       },
     ],
     model: "llama3-8b-8192",

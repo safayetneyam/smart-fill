@@ -25,8 +25,15 @@ const askForPrompt = () => {
   return new Promise((resolve, reject) => {
     rl.question("Ask for an information: ", (prompt) => {
       const allInformation = getInfo().then((data) => {
-        const info = retriveData(data[0].info, prompt);
-        resolve(info);
+        if (data.length === 0) {
+          // console.log("No information available.");
+          resolve("No information available.");
+        } else {
+          const info = retriveData(data[0].info, prompt);
+          resolve(info);
+        }
+        // const info = retriveData(data[0].info, prompt);
+        // resolve(info);
       });
     });
   });

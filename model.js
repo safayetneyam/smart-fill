@@ -1,22 +1,32 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { commonTags } = require("./data");
+const Groq = require("groq-sdk");
 
 require("dotenv").config();
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
+const client = new Groq({
+  apiKey: process.env["GROQ_API_KEY"], // This is the default and can be omitted
+});
+
 function extractJSON(text) {
   try {
     // Extract the JSON content using regex
-    const match = text.match(/```json\n([\s\S]*?)\n```/);
-
-    if (match && match[1]) {
-      // Parse and return the JSON object
-      return JSON.parse(match[1]);
-    } else {
-      throw new Error("No JSON found in the text");
+    // const match = text.match(/```\n([\s\S]*?)\n```/);
+    // if (match && match[1]) {
+    //   // Parse and return the JSON object
+    //   return JSON.parse(match[1]);
+    // } else {
+    //   throw new Error("No JSON found in the text");
+    // }
+    const jsonMatch = text.match(/{[\s\S]*}/);
+    if (!jsonMatch) {
+      throw new Error("No valid JSON found in the input text.");
     }
+
+    return JSON.parse(jsonMatch);
   } catch (error) {
     console.error("Error parsing JSON:", error);
     return null;
@@ -46,15 +56,32 @@ const fetchInfo = async (input) => {
                     3. Provide only the json as output.
                     4. Format text for better spacing and identation. Process gaps wisely for name, address, date of birth etc.
   
-                    Input text is given below:
-                    <INPUT_START>
-                    ${input}
-                    </INPUT_END>
+             
                     `;
 
-  const result = await model.generateContent(prompt);
+  // const result = await model.generateContent(prompt);
+
+  const params = {
+    messages: [
+      {
+        role: "system",
+        content: prompt,
+      },
+      {
+        role: "user",
+        content: `       Input text is given below:
+                    <INPUT_START>
+                    ${input}
+                    </INPUT_END>`,
+      },
+    ],
+    model: "llama3-8b-8192",
+  };
+  const chatCompletion = await client.chat.completions.create(params);
+  // console.log(chatCompletion.choices[0].message.content);
+  return extractJSON(chatCompletion.choices[0].message.content);
   // console.log(result.response.text());
-  return extractJSON(result.response.text());
+  // return extractJSON(result.response.text());
 };
 
 module.exports = {
