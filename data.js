@@ -1,0 +1,26 @@
+const commonTags = [
+  "firstName",
+  "lastName",
+  "jobTitle",
+  "employeeId",
+  "affiliation",
+  "institution",
+  "companyName",
+  "researchAreas",
+  "dateOfBirth",
+  "identityNo",
+  "address",
+  "email",
+  "education",
+  "phone",
+  "workExperience",
+  "publications",
+  "skills",
+  "eTin",
+  "National Identity No",
+  "Passport No",
+  "Nationality",
+];
+module.exports = {
+  commonTags,
+};
