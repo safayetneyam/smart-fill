@@ -28,6 +28,8 @@ const retriveData = async (data, query) => {
             <DATA START>
             ${data}
             </DATA END>
+
+            Just give the value. Don't add any text before of after. 
         `,
       },
       {

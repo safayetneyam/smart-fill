@@ -10,7 +10,7 @@ const { addInfo } = require("./database");
 async function processTextFile(filePath) {
   try {
     const data = fs.readFileSync(filePath, "utf8");
-    console.log(`📄 Text File: ${filePath}\nContent:\n${data}\n`);
+    // console.log(`📄 Text File: ${filePath}\nContent:\n${data}\n`);
 
     // Call the fetchInfo function to extract information
     const generatedOutput = await fetchInfo(data);
@@ -102,6 +102,9 @@ async function processFile(filePath) {
       break;
     case ".docx":
       await docFetch(filePath);
+      break;
+    case ".txt":
+      await processTextFile(filePath);
       break;
     default:
       console.log(`⚠️ Unsupported File Type: ${filePath}`);

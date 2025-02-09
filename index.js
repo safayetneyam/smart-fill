@@ -70,6 +70,7 @@ const handleUserInput = async (input) => {
   setTimeout(showMenu, 1000);
   return;
 };
+
 const main = async () => {
   try {
     console.log("Working...");
