@@ -1,6 +1,7 @@
 const commonTags = [
-  "firstName",
-  "lastName",
+  "name",
+  "fatherName",
+  "motherName",
   "jobTitle",
   "employeeId",
   "affiliation",
@@ -20,7 +21,26 @@ const commonTags = [
   "National Identity No",
   "Passport No",
   "Nationality",
+  "University ID",
+  "University Address",
+  "University Phone",
+  "University Department",
+  "Form No",
+  "Voter Area",
+  "Voter Serial",
+  "Voter No",
+  "Status",
+  "Blood Group",
+  "Address",
+  "Present Address",
+  "Permanent Address",
+  "registrationDate",
+  "issueDate",
+  "registerNo",
+  "Gender",
+  "birthPlace",
 ];
+
 module.exports = {
   commonTags,
 };

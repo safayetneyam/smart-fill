@@ -21,7 +21,8 @@ const retriveData = async (data, query) => {
             1. Don't add any extra information or text before or after the output.
             2. Don't imagine any data. Just extract from given input text.
             3. Provide only the extracted data.
-            4. Format text for better spacing and identation. Process gaps wisely for name, address, date of birth etc.
+            4. If name is asked, give full name.
+            5. Format text for better spacing and identation. Process gaps wisely for name, address, date of birth etc.
 
 
             here is the given data 
@@ -29,7 +30,7 @@ const retriveData = async (data, query) => {
             ${data}
             </DATA END>
 
-            Just give the value. Don't add any text before of after. 
+            Just give the value. Don't add any text before of after.
         `,
       },
       {

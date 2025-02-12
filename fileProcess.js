@@ -6,6 +6,43 @@ const mammoth = require("mammoth");
 const { fetchInfo } = require("./model");
 const { addInfo } = require("./database");
 
+// =======================================================
+// ============ GEMINI TRIAL ============================
+// =======================================================
+
+// require("dotenv").config();
+// // const fs = require("fs");
+// const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+// const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// const imageOCR = async (imageUrl) => {
+//   try {
+//     const imageBuffer = fs.readFileSync(imageUrl); // Read Image File
+//     const base64Image = imageBuffer.toString("base64"); // Convert to Base64
+
+//     // Call Gemini API for OCR
+//     const model = gemini.getGenerativeModel({ model: "gemini-pro-vision" });
+//     const result = await model.generateContent([
+//       { type: "image", data: base64Image },
+//       { type: "text", data: "Extract text from this image." },
+//     ]);
+
+//     // Get Text Output
+//     const generatedText = result.response.candidates[0].content.parts[0].text;
+//     console.log("Extracted Text:", generatedText);
+
+//     // Process Extracted Info
+//     const generatedOutput = await fetchInfo(generatedText);
+//     addInfo({ info: JSON.stringify(generatedOutput) });
+//   } catch (error) {
+//     console.error("Gemini OCR Error:", error.message);
+//   }
+// };
+
+// =======================================================
+// =======================================================
+
 // Function to process text files
 async function processTextFile(filePath) {
   try {
@@ -126,7 +163,7 @@ async function readFilesFromFolder(folderPath) {
 
         if (file !== files[files.length - 1]) {
           console.log("🔄 Checking next file...");
-          await sleep(30000);
+          await sleep(10000);
         }
         if (file === files[files.length - 1])
           console.log("✅ All files processed");
