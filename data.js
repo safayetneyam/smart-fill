@@ -2,6 +2,9 @@ const commonTags = [
   "name",
   "fatherName",
   "motherName",
+  "passportNo",
+  "countryCode",
+  "registerNo",
   "jobTitle",
   "employeeId",
   "affiliation",
@@ -14,7 +17,10 @@ const commonTags = [
   "email",
   "education",
   "phone",
+  "experience",
+  "jobExperience",
   "workExperience",
+  "listOfExperience",
   "publications",
   "skills",
   "eTin",
@@ -36,9 +42,10 @@ const commonTags = [
   "Permanent Address",
   "registrationDate",
   "issueDate",
-  "registerNo",
+  "birthRegistration",
   "Gender",
   "birthPlace",
+  "etc",
 ];
 
 module.exports = {

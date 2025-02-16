@@ -24,7 +24,6 @@ const retriveData = async (data, query) => {
             4. If name is asked, give full name.
             5. Format text for better spacing and identation. Process gaps wisely for name, address, date of birth etc.
 
-
             here is the given data 
             <DATA START>
             ${data}

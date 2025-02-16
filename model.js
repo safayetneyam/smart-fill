@@ -70,10 +70,11 @@ const fetchInfo = async (input) => {
                       "name" : "",
                       "dateOfBirth" : ""
                     }
-  
-                    Here is some of the common information tag. Try to fill them with priority if possible and keep the tag name as it is. Add extra information with new label if needed.
-                    ${commonTags}
-                    if any information is missing use N/A for them. Extract ALL the information possible and properly lable them in json format.
+
+                    Points:
+                    1. Here is some of the common information tag.  ${commonTags} Try to fill them with priority if possible and keep the tag name as it is.
+                    2. If any information is missing use N/A for those label names. 
+                    3. Even if there is no labelled information, extract ALL the information possible and properly label them in json format.
   
                     Instructions:
                     1. Don't add unncessary information or text before or after the output.
@@ -83,7 +84,6 @@ const fetchInfo = async (input) => {
   
                     Note:
                     1. For Birth Certificate, Please read register no, Date of Registration and Date of Issue.
-             
                     `;
 
   // const result = await model.generateContent(prompt);
