@@ -41,7 +41,18 @@ const getInfo = async () => {
   return await InfoModel.find();
 };
 
-module.exports = {
-  addInfo,
-  getInfo,
+const deleteInfo = async () => {
+  try {
+    await InfoModel.deleteMany({}); // Deletes all documents in the collection
+    console.log("Processing...");
+  } catch (error) {
+    console.error("Error deleting data:", error);
+  }
 };
+
+module.exports = { addInfo, getInfo, deleteInfo }; // Export the function
+
+// module.exports = {
+//   addInfo,
+//   getInfo,
+// };

@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const readline = require("readline");
 const { readFilesFromFolder } = require("./fileProcess");
 const { getInfo } = require("./database");
+const { deleteInfo } = require("./database");
 const { retriveData } = require("./retrieve");
 require("dotenv").config();
 
@@ -43,7 +44,8 @@ const showMenu = () => {
   console.log("\n============ Command Menu ============");
   console.log("1. Fetch new data");
   console.log("2. Query for information.");
-  console.log("3. Exit");
+  console.log("3. Delete all stored data");
+  console.log("4. Exit");
   console.log("======================================");
 
   rl.question("Enter your choice: ", handleUserInput);
@@ -61,8 +63,14 @@ const handleUserInput = async (input) => {
       // console.log(JSON.parse(data[0].info));
       break;
     case "3":
+      await deleteInfo();
+      console.log("All stored data has been deleted. ❌");
+      break;
+    case "4":
       rl.close();
-      return;
+      console.log("⛔ Stopping the project by Nodemon Crash...");
+      process.kill(process.pid); // Kills the entire process, even under Nodemon
+      break;
     default:
       console.log("Invalid choice. Please try again.");
   }
