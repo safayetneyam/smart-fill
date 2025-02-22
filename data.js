@@ -1,5 +1,6 @@
 const commonTags = [
   "name",
+  "surname",
   "fatherName",
   "motherName",
   "passportNo",
@@ -45,7 +46,7 @@ const commonTags = [
   "birthRegistration",
   "Gender",
   "birthPlace",
-  "etc",
+  "issuingAuthority",
 ];
 
 module.exports = {

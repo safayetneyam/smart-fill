@@ -56,7 +56,7 @@ const imageOCR = async (imageUrl) => {
     ]);
 
     const text = result.response.text();
-    // console.log("Extracted Text from Image:\n", text);
+    console.log("Extracted Text from Image:\n", text);
 
     const generatedOutput = await fetchInfo(text);
     addInfo({ info: JSON.stringify(generatedOutput) });

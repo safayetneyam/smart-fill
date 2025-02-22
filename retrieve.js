@@ -30,6 +30,9 @@ const retriveData = async (data, query) => {
             </DATA END>
 
             Just give the value. Don't add any text before of after.
+
+            Note:
+            issuer = issuing authority
         `,
       },
       {
