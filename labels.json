@@ -26,7 +26,11 @@
   "Address",
   "City/State",
   "Did you graduate?",
-  "Career",
   "Degree",
-  "ACHIEVEMENTS/AWARDS/HONORS/ORGANIZATIONS"
+  "Career/coursework",
+  "ACHIEVEMENTS/AWARDS/HONORS/ORGANIZATIONS",
+  "Do you have a valid driver’s license?",
+  "Do you have any physical limitations for work?",
+  "Do you have any hobbies or special skills? (Please list below)",
+  "Emergency Contact Information (Name, Address, Phone, Relationship)"
 ]

@@ -8,6 +8,8 @@ const { getInfo } = require("./database");
 const { deleteInfo } = require("./database");
 const { retriveData } = require("./retrieve");
 const { extractLabelsFromFile } = require("./extractLabels"); // New file
+const { extractTextFromGoogleDocs } = require("./extractFromGoogleDocs"); // Import the new function
+
 require("dotenv").config();
 
 const rl = readline.createInterface({
@@ -19,6 +21,14 @@ const askForFilePath = () => {
   return new Promise((resolve, reject) => {
     rl.question("Enter filepath: ", (path) => {
       resolve(path);
+    });
+  });
+};
+
+const askForGoogleDocsLink = () => {
+  return new Promise((resolve, reject) => {
+    rl.question("Enter Docs link: ", (link) => {
+      resolve(link);
     });
   });
 };
@@ -46,8 +56,9 @@ const showMenu = () => {
   console.log("1. Fetch new data");
   console.log("2. Query for information.");
   console.log("3. Delete all stored data");
-  console.log("4. Extract Lables");
-  console.log("5. Exit");
+  console.log("4. Extract Lables from File");
+  console.log("5. Extract Labels from Link");
+  console.log("6. Exit");
   console.log("======================================");
 
   rl.question("Enter your choice: ", handleUserInput);
@@ -73,6 +84,10 @@ const handleUserInput = async (input) => {
       await extractLabelsFromFile(filePath);
       break;
     case "5":
+      const docLink = await askForGoogleDocsLink();
+      await extractTextFromGoogleDocs(docLink);
+      break;
+    case "6":
       rl.close();
       console.log("⛔ Stopping the project by Nodemon Crash...");
       process.kill(process.pid); // Kills the entire process, even under Nodemon

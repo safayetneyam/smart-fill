@@ -77,6 +77,7 @@ const extractLabelsFromFile = async (filePath) => {
     case ".pdf":
       extractedText = await extractLabelsFromPDF(filePath);
       break;
+    case ".doc":
     case ".docx":
       extractedText = await extractLabelsFromDOCX(filePath);
       break;
