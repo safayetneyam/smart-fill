@@ -7,6 +7,7 @@ const { readFilesFromFolder } = require("./fileProcess");
 const { getInfo } = require("./database");
 const { deleteInfo } = require("./database");
 const { retriveData } = require("./retrieve");
+const { extractLabelsFromFile } = require("./extractLabels"); // New file
 require("dotenv").config();
 
 const rl = readline.createInterface({
@@ -45,7 +46,8 @@ const showMenu = () => {
   console.log("1. Fetch new data");
   console.log("2. Query for information.");
   console.log("3. Delete all stored data");
-  console.log("4. Exit");
+  console.log("4. Extract Lables");
+  console.log("5. Exit");
   console.log("======================================");
 
   rl.question("Enter your choice: ", handleUserInput);
@@ -66,7 +68,11 @@ const handleUserInput = async (input) => {
       await deleteInfo();
       console.log("All stored data has been deleted. ❌");
       break;
-    case "4":
+    case "4": // New Case for Extracting Labels
+      const filePath = await askForFilePath();
+      await extractLabelsFromFile(filePath);
+      break;
+    case "5":
       rl.close();
       console.log("⛔ Stopping the project by Nodemon Crash...");
       process.kill(process.pid); // Kills the entire process, even under Nodemon

@@ -111,6 +111,52 @@ const fetchInfo = async (input) => {
   // return extractJSON(result.response.text());
 };
 
+// Function to extract labels
+const labelExtraction = async (text) => {
+  const prompt = `You are an AI assistant that extracts form labels from the given text.
+                  A form label is the text before an input field like "Name:", "Date of Birth:", "Email:", Questions etc.
+                  Do NOT include extra phrases like "Here is the list of form labels".
+                  Only extract the labels as a pure list, without any introductory text, explanations, numbering, or formatting.
+                  Each label must be on a new line. Do not return empty lines or unnecessary words.
+
+                  Example:
+                  Input:
+                  "Name: John Doe
+                  Date of Birth: 12/11/2002
+                  Phone: 123456789"
+                  
+                  Output:
+                  Name
+                  Date of Birth
+                  Phone
+
+                  Extract only the labels from the following text:
+                  ${text}`;
+
+  const params = {
+    messages: [
+      {
+        role: "system",
+        content: prompt,
+      },
+      {
+        role: "user",
+        content: `Extract only form labels from the given text.`,
+      },
+    ],
+    model: "llama3-8b-8192",
+  };
+
+  const chatCompletion = await client.chat.completions.create(params);
+
+  // Ensure labels are returned as a clean, trimmed list
+  return chatCompletion.choices[0].message.content
+    .split("\n") // Split by new lines
+    .map((label) => label.trim()) // Trim spaces
+    .filter((label) => label && label.length > 2); // Remove empty or short lines
+};
+
 module.exports = {
   fetchInfo,
+  labelExtraction,
 };
