@@ -9,6 +9,7 @@ const { deleteInfo } = require("./database");
 const { retriveData } = require("./retrieve");
 const { extractLabelsFromFile } = require("./extractLabels"); // New file
 const { extractTextFromGoogleDocs } = require("./extractFromGoogleDocs"); // Import the new function
+const { processFileWithGemini } = require("./extractLabelsGoogle");
 
 require("dotenv").config();
 
@@ -81,7 +82,8 @@ const handleUserInput = async (input) => {
       break;
     case "4": // New Case for Extracting Labels
       const filePath = await askForFilePath();
-      await extractLabelsFromFile(filePath);
+      // await extractLabelsFromFile(filePath);
+      await processFileWithGemini(filePath);
       break;
     case "5":
       const docLink = await askForGoogleDocsLink();
@@ -113,3 +115,6 @@ const main = async () => {
 };
 
 main();
+
+// C:\Users\User\Downloads\Form\118.pdf
+// C:\Users\User\Downloads\Form\acc-info.pdf
