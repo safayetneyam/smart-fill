@@ -8,41 +8,14 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 /**
- * Extract text from an image using Google Gemini (OCR)
- */
-const extractTextFromImage = async (imagePath) => {
-  try {
-    const dataBuffer = fs.readFileSync(imagePath);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          data: dataBuffer.toString("base64"),
-          mimeType: "image/png",
-        },
-      },
-      {
-        text: "Extract all readable text from this image.",
-      },
-    ]);
-
-    return result.response.text().trim();
-  } catch (error) {
-    console.error("Error extracting text from image:", error.message);
-    return "";
-  }
-};
-
-/**
- * Introduce delay between processing
+ * Delay function for better API request handling.
  */
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Split a PDF into smaller chunks (default: 3 pages per file)
+ * Split a PDF into smaller chunks (default: 1 pages per file).
  */
-const splitPDF = async (pdfPath, chunkSize = 3) => {
+const splitPDF = async (pdfPath, chunkSize = 1) => {
   try {
     const pdfBytes = fs.readFileSync(pdfPath);
     const pdfDoc = await pdfLib.PDFDocument.load(pdfBytes);
@@ -71,20 +44,20 @@ const splitPDF = async (pdfPath, chunkSize = 3) => {
     }
     return chunks;
   } catch (error) {
-    console.error("Error splitting PDF:", error.message);
+    console.error("❌ Error splitting PDF:", error.message);
     return [];
   }
 };
 
 /**
- * Extract labels from a single PDF chunk
+ * Send a PDF chunk to Google Gemini for label extraction.
  */
 const extractLabelsFromPDFChunk = async (pdfPath) => {
   try {
     const dataBuffer = fs.readFileSync(pdfPath);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
 
-    console.log(`Uploading ${path.basename(pdfPath)} to Google Gemini...`);
+    console.log(`📤 Uploading ${path.basename(pdfPath)} to Google Gemini...`);
     const result = await model.generateContent([
       {
         inlineData: {
@@ -96,8 +69,10 @@ const extractLabelsFromPDFChunk = async (pdfPath) => {
         text: `Analyze the following text and extract **all form labels** including **checklist items**.
                - Maintain **hierarchical structure** (e.g., "Family Member 1 Given Names" under "Family Member 1").
                - Detect **checklist options**, ** supporting documents** and format them as **part of the main label**.
+               - Detect **supporting documents** and format them as **part of the main label**.
                - Remove **newline characters (\n)** and replace them with a **space**.
-               - Do not reduce the labels. Keep it as it is. 
+               - If a checklist or gaps is under a label, write label name - checklist or gap name.
+               - Do not skip any labels. Keep as many labels as possible. 
 
                Example Output (JSON format):
                [
@@ -114,9 +89,11 @@ const extractLabelsFromPDFChunk = async (pdfPath) => {
                  "Family Member 1 Place of Birth Town/City",
                  "Family Member 1 Place of Birth State/Province",
                  "Family Member 1 Place of Birth Country",
-                 "Issuing Authority/ Place of Issue as Shown in Passport"
+                 "Issuing Authority/ Place of Issue as Shown in Passport",
+                 "Parent 2 - Relationship to you",
+                 "Parent 2 - Date of Birth"
                ]
-                 	
+                 
                Do **not** group items inside nested JSON objects.
                Return only a **flat JSON list of labels**.`,
       },
@@ -127,115 +104,95 @@ const extractLabelsFromPDFChunk = async (pdfPath) => {
       responseText = responseText.replace(/```json|```/g, "").trim();
     }
 
-    return JSON.parse(responseText);
+    try {
+      return JSON.parse(responseText);
+    } catch (error) {
+      console.error(
+        "❌ Error parsing JSON response from Gemini:",
+        error.message
+      );
+      return []; // Return an empty array instead of crashing
+    }
   } catch (error) {
-    console.error(`Error extracting labels from ${pdfPath}:`, error.message);
+    console.error(`❌ Error extracting labels from ${pdfPath}:`, error.message);
     return [];
   }
 };
 
 /**
- * Process a PDF by splitting it, processing each chunk separately, and merging labels at the end
+ * Process a PDF by splitting it, processing each chunk separately, and merging labels at the end.
  */
 const extractTextFromPDF = async (pdfPath) => {
   try {
-    const chunks = await splitPDF(pdfPath, 3);
+    const chunks = await splitPDF(pdfPath, 2);
     let allLabels = [];
 
     for (const chunk of chunks) {
       const labels = await extractLabelsFromPDFChunk(chunk);
       allLabels.push(...labels);
-      fs.unlinkSync(chunk);
+      fs.unlinkSync(chunk); // Delete chunk after processing
       await delay(30000); // 30-second delay before processing the next chunk
     }
 
     return allLabels.length > 0 ? allLabels : [];
   } catch (error) {
-    console.error("Error processing large PDF:", error.message);
+    console.error("❌ Error processing PDF:", error.message);
     return [];
   }
 };
 
 /**
- * Extract text from DOCX
+ * Save extracted labels to `labels.json` safely.
  */
-const extractTextFromDOCX = async (docxPath) => {
+const saveLabelsToFile = (labels) => {
   try {
-    const dataBuffer = fs.readFileSync(docxPath);
-    const result = await mammoth.extractRawText({ buffer: dataBuffer });
-    return result.value.trim();
-  } catch (error) {
-    console.error("Error extracting text from DOCX:", error.message);
-    return "";
-  }
-};
+    const filePath = "labels.json";
+    let existingLabels = [];
 
-/**
- * Extract text from TXT file
- */
-const extractTextFromTXT = async (txtPath) => {
-  try {
-    return fs.readFileSync(txtPath, "utf8").trim();
-  } catch (error) {
-    console.error("Error extracting text from TXT:", error.message);
-    return "";
-  }
-};
-
-/**
- * Extract structured labels & checklist options using Google Gemini
- */
-const extractStructuredLabels = async (text) => {
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-
-    const result = await model.generateContent([
-      {
-        text: `Analyze the following text and extract **all form labels** including **checklist items**.
-               - Maintain **hierarchical structure** (e.g., "Family Member 1 Given Names" under "Family Member 1").
-               - Detect **checklist options** and format them as **part of the main label**.
-               - Remove **newline characters (\n)** and replace them with a **space**.
-
-               Example Output (JSON format):
-               [
-                 "Identity Document Checklist - Australian Driver’s Licence",
-                 "Identity Document Checklist - Passport",
-                 "Identity Document Checklist - UNHCR Document",
-                 "Identity Document Checklist - National Identity Card",
-                 "Identity Document Checklist - Other Document with Signature and Photo",
-                 "Supporting Document - Your Australian citizen parent’s",
-                 "Family Member 1 Relationship to You",
-                 "Family Member 1 Full Name",
-                 "Family Member 1 Given Names",
-                 "Family Member 1 Name in Chinese Commercial Code Numbers (if applicable)",
-                 "Family Member 1 Place of Birth Town/City",
-                 "Family Member 1 Place of Birth State/Province",
-                 "Family Member 1 Place of Birth Country",
-                 "Issuing Authority/ Place of Issue as Shown in Passport"
-               ]
-                 
-               Do **not** group items inside nested JSON objects.
-               Return only a **flat JSON list of labels**.
-               Text Input:
-               """
-               ${text.replace(/\n/g, " ")}
-               """`,
-      },
-    ]);
-
-    let responseText = result.response.text().trim();
-
-    if (responseText.startsWith("```json")) {
-      responseText = responseText.replace(/```json|```/g, "").trim();
+    // Check if labels.json exists and is not empty before reading
+    if (fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {
+      try {
+        const existingData = fs.readFileSync(filePath, "utf8");
+        existingLabels = JSON.parse(existingData);
+      } catch (error) {
+        console.error(
+          "⚠️ Warning: labels.json is corrupted. Resetting file..."
+        );
+        existingLabels = []; // Reset corrupted file
+      }
     }
 
-    return JSON.parse(responseText);
+    const combinedLabels = [...existingLabels, ...labels];
+    fs.writeFileSync(filePath, JSON.stringify(combinedLabels, null, 2));
+    console.log("✅ Labels saved in labels.json");
   } catch (error) {
-    console.error("Error extracting labels:", error.message);
-    return [];
+    console.error("❌ Error saving labels to file:", error.message);
+  }
+};
+
+/**
+ * Process the file and extract structured labels & checklist items.
+ */
+const processFileWithGemini = async (filePath) => {
+  const ext = path.extname(filePath).toLowerCase();
+  let extractedLabels = [];
+
+  switch (ext) {
+    case ".pdf":
+      extractedLabels = await extractTextFromPDF(filePath);
+      break;
+    default:
+      console.log(`⚠️ Unsupported File Type: ${filePath}`);
+      return;
+  }
+
+  if (extractedLabels.length > 0) {
+    saveLabelsToFile(extractedLabels);
+  } else {
+    console.log("⚠️ No labels found.");
   }
 };
 
 module.exports = {
-  processFileWithGemini: extractTextFromPDF,
+  processFileWithGemini,
 };
