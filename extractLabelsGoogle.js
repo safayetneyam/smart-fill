@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const pdfLib = require("pdf-lib");
 const mammoth = require("mammoth");
+const textract = require("textract"); // 🔹 NEW: Extracts text from DOC files
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Initialize Google Gemini AI
@@ -170,9 +171,165 @@ const saveLabelsToFile = (labels) => {
   }
 };
 
+// ================== DOCUMENTs, Images, Text Files ============
+
+/**
+ * Helper function to clean and extract JSON from Gemini response.
+ */
+const parseGeminiResponse = (responseText) => {
+  try {
+    responseText = responseText.trim();
+
+    // Ensure response contains JSON
+    const jsonMatch = responseText.match(/\[.*\]/s);
+    if (!jsonMatch) throw new Error("No valid JSON found in response.");
+
+    return JSON.parse(jsonMatch[0]); // Extract only JSON part
+  } catch (error) {
+    console.error("❌ Error parsing JSON response from Gemini:", error.message);
+    return [];
+  }
+};
+
+/**
+ * Extract labels from a DOCX file using Mammoth
+ */
+const extractLabelsFromDOCX = async (docxPath) => {
+  try {
+    const dataBuffer = fs.readFileSync(docxPath);
+    const result = await mammoth.extractRawText({ buffer: dataBuffer });
+    return await extractLabelsWithGemini(result.value);
+  } catch (error) {
+    console.error("❌ Error extracting labels from DOCX:", error.message);
+    return [];
+  }
+};
+
+/**
+ * Extract labels from an image using Google Gemini
+ */
+const extractLabelsFromImage = async (imagePath) => {
+  try {
+    const dataBuffer = fs.readFileSync(imagePath);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+    console.log(`📤 Uploading ${path.basename(imagePath)} to Google Gemini...`);
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          data: dataBuffer.toString("base64"),
+          mimeType: "image/png", // Works for JPG/PNG
+        },
+      },
+      {
+        text: `Analyze the following text and extract **all form labels** including **checklist items**.
+               - Maintain **hierarchical structure** (e.g., "Family Member 1 Given Names" under "Family Member 1").
+               - Detect **checklist options**, ** supporting documents** and format them as **part of the main label**.
+               - Detect **supporting documents** and format them as **part of the main label**.
+               - Remove **newline characters (\n)** and replace them with a **space**.
+               - If a checklist or gaps is under a label, write label name - checklist or gap name.
+               - Do not skip any labels. Keep as many labels as possible. 
+
+               Example Output (JSON format):
+               [
+                 "Identity Document Checklist - Australian Driver’s Licence",
+                 "Identity Document Checklist - Passport",
+                 "Identity Document Checklist - UNHCR Document",
+                 "Identity Document Checklist - National Identity Card",
+                 "Identity Document Checklist - Other Document with Signature and Photo",
+                 "Supporting Document - Your Australian citizen parent’s",
+                 "Family Member 1 Relationship to You",
+                 "Family Member 1 Full Name",
+                 "Family Member 1 Given Names",
+                 "Family Member 1 Name in Chinese Commercial Code Numbers (if applicable)",
+                 "Family Member 1 Place of Birth Town/City",
+                 "Family Member 1 Place of Birth State/Province",
+                 "Family Member 1 Place of Birth Country",
+                 "Issuing Authority/ Place of Issue as Shown in Passport",
+                 "Parent 2 - Relationship to you",
+                 "Parent 2 - Date of Birth"
+               ]
+                 
+               Do **not** group items inside nested JSON objects.
+               Return only a **flat JSON list of labels**.`,
+      },
+    ]);
+
+    return parseGeminiResponse(result.response.text());
+  } catch (error) {
+    console.error("❌ Error extracting labels from image:", error.message);
+    return [];
+  }
+};
+
+/**
+ * Extract labels from a TXT file
+ */
+const extractLabelsFromText = async (textPath) => {
+  try {
+    const text = fs.readFileSync(textPath, "utf8");
+    return await extractLabelsWithGemini(text);
+  } catch (error) {
+    console.error("❌ Error extracting labels from TXT:", error.message);
+    return [];
+  }
+};
+
+/**
+ * Extract labels using Google Gemini from raw text input
+ */
+const extractLabelsWithGemini = async (text) => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const result = await model.generateContent([
+      {
+        text: `Analyze the following text and extract **all form labels** including **checklist items**.
+               - Maintain **hierarchical structure** (e.g., "Family Member 1 Given Names" under "Family Member 1").
+               - Detect **checklist options**, ** supporting documents** and format them as **part of the main label**.
+               - Detect **supporting documents** and format them as **part of the main label**.
+               - Remove **newline characters (\n)** and replace them with a **space**.
+               - If a checklist or gaps is under a label, write label name - checklist or gap name.
+               - Do not skip any labels. Keep as many labels as possible. 
+
+               Example Output (JSON format):
+               [
+                 "Identity Document Checklist - Australian Driver’s Licence",
+                 "Identity Document Checklist - Passport",
+                 "Identity Document Checklist - UNHCR Document",
+                 "Identity Document Checklist - National Identity Card",
+                 "Identity Document Checklist - Other Document with Signature and Photo",
+                 "Supporting Document - Your Australian citizen parent’s",
+                 "Family Member 1 Relationship to You",
+                 "Family Member 1 Full Name",
+                 "Family Member 1 Given Names",
+                 "Family Member 1 Name in Chinese Commercial Code Numbers (if applicable)",
+                 "Family Member 1 Place of Birth Town/City",
+                 "Family Member 1 Place of Birth State/Province",
+                 "Family Member 1 Place of Birth Country",
+                 "Issuing Authority/ Place of Issue as Shown in Passport",
+                 "Parent 2 - Relationship to you",
+                 "Parent 2 - Date of Birth"
+               ]
+                 
+               Do **not** group items inside nested JSON objects.
+               Return only a **flat JSON list of labels**.
+               Text is here: \n\n${text}`,
+      },
+    ]);
+
+    return parseGeminiResponse(result.response.text());
+  } catch (error) {
+    console.error("❌ Error extracting labels with Gemini:", error.message);
+    return [];
+  }
+};
+
+// =============================================================
+
 /**
  * Process the file and extract structured labels & checklist items.
  */
+
 const processFileWithGemini = async (filePath) => {
   const ext = path.extname(filePath).toLowerCase();
   let extractedLabels = [];
@@ -180,6 +337,17 @@ const processFileWithGemini = async (filePath) => {
   switch (ext) {
     case ".pdf":
       extractedLabels = await extractTextFromPDF(filePath);
+      break;
+    case ".docx":
+      extractedLabels = await extractLabelsFromDOCX(filePath);
+      break;
+    case ".jpg":
+    case ".jpeg":
+    case ".png":
+      extractedLabels = await extractLabelsFromImage(filePath);
+      break;
+    case ".txt":
+      extractedLabels = await extractLabelsFromText(filePath);
       break;
     default:
       console.log(`⚠️ Unsupported File Type: ${filePath}`);

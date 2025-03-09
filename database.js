@@ -1,6 +1,13 @@
+const fs = require("fs");
 const { InfoModel } = require("./schema");
 
 const addInfo = async (information) => {
+  const filePath = "info.json";
+
+  // Save locally before inserting into MongoDB
+  fs.writeFileSync(filePath, JSON.stringify(information, null, 2));
+  console.log("✅ Data saved locally in info.json");
+
   const info = await InfoModel.find();
 
   if (info.length === 0) {
