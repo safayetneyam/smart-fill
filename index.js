@@ -10,6 +10,7 @@ const { retriveData } = require("./retrieve");
 const { extractLabelsFromFile } = require("./extractLabels"); // New file
 const { extractTextFromGoogleDocs } = require("./extractFromGoogleDocs"); // Import the new function
 const { processFileWithGemini } = require("./extractLabelsGoogle");
+const { processLabelInformation } = require("./labelInformation"); // Import new function
 
 require("dotenv").config();
 
@@ -59,7 +60,8 @@ const showMenu = () => {
   console.log("3. Delete all stored data");
   console.log("4. Extract Lables from File");
   console.log("5. Extract Labels from Link");
-  console.log("6. Exit");
+  console.log("6. Get Label Information");
+  console.log("7. Exit");
   console.log("======================================");
 
   rl.question("Enter your choice: ", handleUserInput);
@@ -89,7 +91,10 @@ const handleUserInput = async (input) => {
       const docLink = await askForGoogleDocsLink();
       await extractTextFromGoogleDocs(docLink);
       break;
-    case "6":
+    case "6": // Get Label Information (Modified Flow)
+      await processLabelInformation();
+      break;
+    case "7":
       rl.close();
       console.log("⛔ Stopping the project by Nodemon Crash...");
       process.kill(process.pid); // Kills the entire process, even under Nodemon
